@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  
+  <defs>
+    <pattern id="tooth" width="4" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#14120F" opacity="0.07"/>
+    </pattern>
+    <linearGradient id="cyl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-opacity="0.28" stop-color="#14120F"/>
+      <stop offset="0.28" stop-opacity="0" stop-color="#14120F"/>
+      <stop offset="0.72" stop-opacity="0" stop-color="#14120F"/>
+      <stop offset="1" stop-opacity="0.22" stop-color="#14120F"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.18" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="0.34" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="#E2D9C5"/>
+  <rect width="1600" height="1000" fill="url(#tooth)"/>
+  <path d="M0 0 H620 L360 1000 H0 Z" fill="#CE2A15" opacity="0.92"/>
+  <path d="M0 0 H620 L360 1000 H0 Z" fill="url(#tooth)"/>
+  <g transform="translate(540 -30) scale(0.92)">
+  <rect x="330" y="230" width="540" height="700" rx="10" fill="#14120F"/>
+  <rect x="352" y="252" width="496" height="656" rx="6" fill="#F7F3E9"/>
+  <rect x="352" y="252" width="496" height="656" rx="6" fill="#9AA0A6" opacity="0.18"/>
+  <g transform="translate(0,-24) scale(0.60) translate(672,306)">
+    
+  
+    <path d="M380.2 109.3999999999999
+             q115.24000000000001 53.6 80.4 201
+             q-21.44 99.16000000000001 34.84 139.36"
+          stroke="#14120F" stroke-width="22.78" fill="none" stroke-linecap="round"/>
+    <rect x="479.36" y="447.0799999999999" width="45.56" height="69.68"
+          rx="10.72" fill="#14120F"/>
+  <!-- body -->
+  <rect x="172.5" y="149.5999999999999" width="335" height="750.4000000000001" rx="34.84" fill="#CE2A15"/>
+  <rect x="172.5" y="149.5999999999999" width="335" height="750.4000000000001" rx="34.84" fill="url(#cyl)"/>
+  <rect x="172.5" y="149.5999999999999" width="335" height="750.4000000000001" rx="34.84" fill="url(#gloss)"/>
+  <rect x="172.5" y="149.5999999999999" width="335" height="750.4000000000001" rx="34.84"
+        fill="none" stroke="#14120F" stroke-width="4.0200000000000005" stroke-opacity="0.55"/>
+  <!-- base rim -->
+  <rect x="161.78" y="865.16" width="356.44" height="34.84"
+        rx="10.72" fill="#14120F" opacity="0.85"/>
+  
+  <!-- label panel -->
+  <rect x="207.34" y="465.8399999999999" width="265.32" height="201"
+        rx="8.040000000000001" fill="#EDE6D6" opacity="0.94"/>
+  <text x="340" y="535.52" text-anchor="middle"
+        font-family="Anton, Impact, sans-serif" font-size="58.96" fill="#14120F"
+        letter-spacing="5.36">ABC</text>
+  <text x="340" y="591.8" text-anchor="middle"
+        font-family="Archivo, Helvetica, sans-serif" font-weight="700" font-size="22.78"
+        fill="#5C574D" letter-spacing="2.144">DRY POWDER</text>
+  <rect x="231.46" y="615.92" width="217.07999999999998" height="4.0200000000000005"
+        fill="#CE2A15"/>
+  <!-- neck, head, handle -->
+  <rect x="290.42" y="87.95999999999991" width="99.16000000000001" height="77.72"
+        rx="13.4" fill="#14120F"/>
+  <rect x="211.35999999999999" y="47.759999999999906" width="241.20000000000002" height="29.48"
+        rx="14.74" fill="#14120F"/>
+  <rect x="235.48" y="4.87999999999991" width="201" height="26.8"
+        rx="13.4" fill="#5C574D"/>
+  <circle cx="270.32" cy="61.15999999999991" r="12.06" fill="#B08D57"/>
+  
+  <circle cx="251.56" cy="120.11999999999992" r="40.2" fill="#EDE6D6"
+          stroke="#14120F" stroke-width="4.0200000000000005"/>
+  <path d="M219.39999999999998 120.11999999999992 a32.160000000000004 32.160000000000004 0 0 1 64.32000000000001 0"
+        fill="none" stroke="#1C7A4B" stroke-width="9.38"/>
+  <line x1="251.56" y1="120.11999999999992"
+        x2="264.96" y2="93.31999999999991"
+        stroke="#14120F" stroke-width="5.36" stroke-linecap="round"/>
+  </g>
+  <rect x="352" y="252" width="496" height="656" rx="6" fill="none" stroke="#14120F" stroke-width="4" opacity="0.5"/>
+  <line x1="352" y1="252" x2="848" y2="908" stroke="#FFFFFF" stroke-width="26" opacity="0.16"/>
+  <rect x="392" y="826" width="376" height="52" fill="#CE2A15"/>
+  <text x="580" y="863" text-anchor="middle" font-family="Anton, Impact, sans-serif"
+        font-size="30" fill="#EDE6D6" letter-spacing="5">BREAK GLASS</text></g>
+  
+  <path d="M40 74V40h34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M1526 40h34v34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M1560 926v34h-34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M74 960h-34v-34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/></svg>

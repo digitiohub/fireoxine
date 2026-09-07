@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+.env
+.env*.local
+prisma/dev.db
+prisma/dev.db-journal
+public/uploads/*
+!public/uploads/.gitkeep
+.impeccable/config.local.json
+.impeccable/questions
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.next-check

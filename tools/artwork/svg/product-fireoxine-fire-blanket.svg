@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <defs>
+    <pattern id="tooth" width="4" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#14120F" opacity="0.07"/>
+    </pattern>
+    <linearGradient id="cyl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-opacity="0.28" stop-color="#14120F"/>
+      <stop offset="0.28" stop-opacity="0" stop-color="#14120F"/>
+      <stop offset="0.72" stop-opacity="0" stop-color="#14120F"/>
+      <stop offset="1" stop-opacity="0.22" stop-color="#14120F"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.18" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="0.34" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="#E2D9C5"/>
+  <rect width="1200" height="1200" fill="url(#tooth)"/>
+  <path d="M46 86V46h40" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M1114 46h40v40" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M1154 1114v40h-40" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M86 1154h-40v-40" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <rect x="368" y="250" width="464" height="640" rx="14" fill="#CE2A15"/>
+  <rect x="368" y="250" width="464" height="640" rx="14" fill="url(#cyl)"/>
+  <rect x="368" y="250" width="464" height="640" rx="14" fill="none" stroke="#14120F" stroke-width="4" opacity="0.4"/>
+  <text x="600" y="366" text-anchor="middle" font-family="Anton, Impact, sans-serif"
+        font-size="76" fill="#EDE6D6" letter-spacing="2">FIRE</text>
+  <text x="600" y="440" text-anchor="middle" font-family="Anton, Impact, sans-serif"
+        font-size="76" fill="#EDE6D6" letter-spacing="2">BLANKET</text>
+  <rect x="420" y="474" width="360" height="3" fill="#EDE6D6" opacity="0.6"/>
+  
+  <rect x="424" y="516" width="300" height="9" rx="4" fill="#EDE6D6" opacity="0.5"/>
+  <rect x="424" y="562" width="276" height="9" rx="4" fill="#EDE6D6" opacity="0.5"/>
+  <rect x="424" y="608" width="252" height="9" rx="4" fill="#EDE6D6" opacity="0.5"/>
+  <rect x="424" y="654" width="228" height="9" rx="4" fill="#EDE6D6" opacity="0.5"/>
+  <path d="M470 742 q130 -46 260 0" stroke="#EDE6D6" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M470 796 q130 -46 260 0" stroke="#EDE6D6" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <text x="600" y="864" text-anchor="middle" font-family="Archivo, Helvetica, sans-serif"
+        font-weight="700" font-size="22" fill="#EDE6D6" opacity="0.85" letter-spacing="3">PULL TABS DOWN</text></svg>

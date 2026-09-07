@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  
+  <defs>
+    <pattern id="tooth" width="4" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#14120F" opacity="0.07"/>
+    </pattern>
+    <linearGradient id="cyl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-opacity="0.28" stop-color="#14120F"/>
+      <stop offset="0.28" stop-opacity="0" stop-color="#14120F"/>
+      <stop offset="0.72" stop-opacity="0" stop-color="#14120F"/>
+      <stop offset="1" stop-opacity="0.22" stop-color="#14120F"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.18" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="0.34" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="#E2D9C5"/>
+  <rect width="1600" height="1000" fill="url(#tooth)"/>
+  <path d="M0 0 H620 L360 1000 H0 Z" fill="#CE2A15" opacity="0.92"/>
+  <path d="M0 0 H620 L360 1000 H0 Z" fill="url(#tooth)"/>
+  <g transform="translate(420 -40) scale(0.86)">
+  
+    <path d="M596.2 229.39999999999992
+             q115.24000000000001 53.6 80.4 201
+             q-21.44 99.16000000000001 34.84 139.36"
+          stroke="#14120F" stroke-width="22.78" fill="none" stroke-linecap="round"/>
+    <rect x="695.36" y="567.0799999999999" width="45.56" height="69.68"
+          rx="10.72" fill="#14120F"/>
+  <!-- body -->
+  <rect x="388.5" y="269.5999999999999" width="335" height="750.4000000000001" rx="34.84" fill="#CE2A15"/>
+  <rect x="388.5" y="269.5999999999999" width="335" height="750.4000000000001" rx="34.84" fill="url(#cyl)"/>
+  <rect x="388.5" y="269.5999999999999" width="335" height="750.4000000000001" rx="34.84" fill="url(#gloss)"/>
+  <rect x="388.5" y="269.5999999999999" width="335" height="750.4000000000001" rx="34.84"
+        fill="none" stroke="#14120F" stroke-width="4.0200000000000005" stroke-opacity="0.55"/>
+  <!-- base rim -->
+  <rect x="377.78" y="985.16" width="356.44" height="34.84"
+        rx="10.72" fill="#14120F" opacity="0.85"/>
+  <rect x="388.5" y="470.5999999999999" width="335" height="77.72" fill="#EDE6D6" opacity="0.95"/>
+            <rect x="388.5" y="470.5999999999999" width="335" height="77.72" fill="url(#cyl)"/>
+  <!-- label panel -->
+  <rect x="423.34000000000003" y="585.8399999999999" width="265.32" height="201"
+        rx="8.040000000000001" fill="#EDE6D6" opacity="0.94"/>
+  <text x="556" y="655.52" text-anchor="middle"
+        font-family="Anton, Impact, sans-serif" font-size="58.96" fill="#14120F"
+        letter-spacing="5.36">A B C</text>
+  <text x="556" y="711.8" text-anchor="middle"
+        font-family="Archivo, Helvetica, sans-serif" font-weight="700" font-size="22.78"
+        fill="#5C574D" letter-spacing="2.144">ABC DRY POWDER</text>
+  <rect x="447.46" y="735.92" width="217.07999999999998" height="4.0200000000000005"
+        fill="#CE2A15"/>
+  <!-- neck, head, handle -->
+  <rect x="506.42" y="207.95999999999992" width="99.16000000000001" height="77.72"
+        rx="13.4" fill="#14120F"/>
+  <rect x="427.36" y="167.75999999999993" width="241.20000000000002" height="29.48"
+        rx="14.74" fill="#14120F"/>
+  <rect x="451.48" y="124.87999999999992" width="201" height="26.8"
+        rx="13.4" fill="#5C574D"/>
+  <circle cx="486.32" cy="181.1599999999999" r="12.06" fill="#B08D57"/>
+  
+  <circle cx="467.56" cy="240.11999999999992" r="40.2" fill="#EDE6D6"
+          stroke="#14120F" stroke-width="4.0200000000000005"/>
+  <path d="M435.4 240.11999999999992 a32.160000000000004 32.160000000000004 0 0 1 64.32000000000001 0"
+        fill="none" stroke="#1C7A4B" stroke-width="9.38"/>
+  <line x1="467.56" y1="240.11999999999992"
+        x2="480.96" y2="213.31999999999994"
+        stroke="#14120F" stroke-width="5.36" stroke-linecap="round"/></g><g transform="translate(1010 90) scale(0.62)">
+  
+    <path d="M587.8 394.59999999999997
+             q91.16000000000001 42.400000000000006 63.6 159
+             q-16.96 78.44 27.560000000000002 110.24000000000001"
+          stroke="#14120F" stroke-width="18.02" fill="none" stroke-linecap="round"/>
+    <rect x="666.24" y="661.72" width="36.04" height="55.120000000000005"
+          rx="8.48" fill="#14120F"/>
+  <!-- body -->
+  <rect x="423.5" y="426.4" width="265" height="593.6" rx="27.560000000000002" fill="#CE2A15"/>
+  <rect x="423.5" y="426.4" width="265" height="593.6" rx="27.560000000000002" fill="url(#cyl)"/>
+  <rect x="423.5" y="426.4" width="265" height="593.6" rx="27.560000000000002" fill="url(#gloss)"/>
+  <rect x="423.5" y="426.4" width="265" height="593.6" rx="27.560000000000002"
+        fill="none" stroke="#14120F" stroke-width="3.18" stroke-opacity="0.55"/>
+  <!-- base rim -->
+  <rect x="415.02" y="992.44" width="281.96" height="27.560000000000002"
+        rx="8.48" fill="#14120F" opacity="0.85"/>
+  <rect x="423.5" y="585.4" width="265" height="61.480000000000004" fill="#EDE6D6" opacity="0.95"/>
+            <rect x="423.5" y="585.4" width="265" height="61.480000000000004" fill="url(#cyl)"/>
+  <!-- label panel -->
+  <rect x="451.06" y="676.56" width="209.88" height="159"
+        rx="6.36" fill="#EDE6D6" opacity="0.94"/>
+  <text x="556" y="731.6800000000001" text-anchor="middle"
+        font-family="Anton, Impact, sans-serif" font-size="46.64" fill="#14120F"
+        letter-spacing="4.24">A B C</text>
+  <text x="556" y="776.2" text-anchor="middle"
+        font-family="Archivo, Helvetica, sans-serif" font-weight="700" font-size="18.02"
+        fill="#5C574D" letter-spacing="1.6960000000000002">ABC DRY POWDER</text>
+  <rect x="470.14" y="795.28" width="171.72" height="3.18"
+        fill="#CE2A15"/>
+  <!-- neck, head, handle -->
+  <rect x="516.78" y="377.64" width="78.44" height="61.480000000000004"
+        rx="10.600000000000001" fill="#14120F"/>
+  <rect x="454.24" y="345.84" width="190.8" height="23.32"
+        rx="11.66" fill="#14120F"/>
+  <rect x="473.32" y="311.91999999999996" width="159" height="21.200000000000003"
+        rx="10.600000000000001" fill="#5C574D"/>
+  <circle cx="500.88" cy="356.44" r="9.540000000000001" fill="#B08D57"/>
+  
+  <circle cx="486.03999999999996" cy="403.08" r="31.8" fill="#EDE6D6"
+          stroke="#14120F" stroke-width="3.18"/>
+  <path d="M460.6 403.08 a25.44 25.44 0 0 1 50.88 0"
+        fill="none" stroke="#1C7A4B" stroke-width="7.42"/>
+  <line x1="486.03999999999996" y1="403.08"
+        x2="496.64" y2="381.88"
+        stroke="#14120F" stroke-width="4.24" stroke-linecap="round"/></g>
+  
+  <path d="M40 74V40h34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M1526 40h34v34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M1560 926v34h-34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+  <path d="M74 960h-34v-34" stroke="#14120F" stroke-opacity="0.22" stroke-width="2" fill="none"/></svg>
