@@ -1,29 +1,86 @@
-# Three apps and a database. Only `api` reaches Postgres.
+# FireOxine — three apps. Only `api` reaches the database.
 #
-# `admin` is deliberately published on 127.0.0.1 only: the back office is not
-# meant to be exposed the way the storefront is. Put it behind a VPN or an IP
-# allowlist before binding it to a public interface.
+# Every value comes from the environment, so the same file works locally and
+# on a platform like Coolify, where the variables are set in the UI. Defaults
+# after `:-` are development conveniences and are wrong for production.
+#
+# Ports are `expose`, not `ports`: a reverse proxy (Coolify's Traefik, or your
+# own) routes to them by domain. Nothing is published on the host, so the back
+# office cannot be reached by accident just because a port was open.
 #
 # First run, once the containers are up:
 #
-#   docker compose exec api npx prisma migrate deploy
-#   docker compose exec api npx tsx prisma/fetch-catalogue-images.ts
-#   docker compose exec api npx tsx prisma/seed.ts
+#   docker compose exec api npm run db:provision
 #
-# That order matters: the schema has to exist before the seed, and the images
-# have to be on the volume before the seed writes rows that point at them.
-
-x-app-env: &app-env
-  # Generate a real one: openssl rand -base64 32
-  AUTH_SECRET: "change-me-before-anything-public"
+# That migrates, downloads the 270 photographs onto the volume, and seeds. The
+# order matters: the seed writes rows pointing at /uploads, so the files have
+# to be there first.
 
 services:
+  api:
+    build:
+      context: .
+      target: api
+    expose:
+      - "3002"
+    environment:
+      # The only service with database access.
+      DATABASE_URL: ${DATABASE_URL}
+      # Signs every session token. The API refuses to start without it.
+      AUTH_SECRET: ${AUTH_SECRET}
+    volumes:
+      # Product photography and admin uploads. Without this, every redeploy
+      # destroys every image the client has uploaded.
+      - uploads:/app/apps/api/public/uploads
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      target: web
+      args:
+        # Baked into the HTML at BUILD time, so it must be present here and
+        # not only in `environment`. Changing it needs a rebuild, not a restart.
+        NEXT_PUBLIC_MEDIA_URL: ${NEXT_PUBLIC_MEDIA_URL}
+    expose:
+      - "3000"
+    depends_on:
+      - api
+    environment:
+      # Server-to-server, over the internal network. The browser never uses it.
+      API_URL: ${API_URL:-http://api:3002}
+      NEXT_PUBLIC_MEDIA_URL: ${NEXT_PUBLIC_MEDIA_URL}
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: .
+      target: admin
+      args:
+        NEXT_PUBLIC_MEDIA_URL: ${NEXT_PUBLIC_MEDIA_URL}
+    expose:
+      - "3001"
+    depends_on:
+      - api
+    environment:
+      API_URL: ${API_URL:-http://api:3002}
+      NEXT_PUBLIC_MEDIA_URL: ${NEXT_PUBLIC_MEDIA_URL}
+      # Only used for the "view on site" link out of the product editor.
+      WEB_URL: ${WEB_URL}
+    restart: unless-stopped
+
+  # Local development only. Coolify supplies its own managed Postgres, so this
+  # stays out of the way unless you ask for it:
+  #   docker compose --profile local up
   postgres:
+    profiles: ["local"]
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: fireoxine
       POSTGRES_PASSWORD: fireoxine
       POSTGRES_DB: fireoxine
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -31,50 +88,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  api:
-    build:
-      context: .
-      target: api
-    ports:
-      - "127.0.0.1:3002:3002"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      <<: *app-env
-      DATABASE_URL: "postgresql://fireoxine:fireoxine@postgres:5432/fireoxine?schema=public"
-    volumes:
-      # Product photography and admin uploads. Without this, every redeploy
-      # loses every image the client has uploaded.
-      - uploads:/app/apps/api/public/uploads
-
-  web:
-    build:
-      context: .
-      target: web
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-    environment:
-      API_URL: "http://api:3002"
-      # Media URLs are resolved by the visitor's browser, so this must be the
-      # address the API is reachable at from OUTSIDE the compose network.
-      NEXT_PUBLIC_MEDIA_URL: "http://localhost:3002"
-
-  admin:
-    build:
-      context: .
-      target: admin
-    ports:
-      - "127.0.0.1:3001:3001"
-    depends_on:
-      - api
-    environment:
-      API_URL: "http://api:3002"
-      NEXT_PUBLIC_MEDIA_URL: "http://localhost:3002"
-      WEB_URL: "http://localhost:3000"
 
 volumes:
   uploads:

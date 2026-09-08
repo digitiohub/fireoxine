@@ -47,6 +47,14 @@ COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# NEXT_PUBLIC_* values are inlined into the JavaScript at build time, not read
+# at run time. If this is absent here, the front ends ship with the localhost
+# fallback compiled in and every product image 404s in production, however
+# correct the runtime environment is.
+ARG NEXT_PUBLIC_MEDIA_URL="http://localhost:3002"
+ENV NEXT_PUBLIC_MEDIA_URL=$NEXT_PUBLIC_MEDIA_URL
+
 # NODE_ENV is deliberately NOT set here. `next build` selects production mode
 # itself, and forcing the variable either way only risks a non-standard build.
 # The npm side is handled where it matters, with --include=dev in deps.
