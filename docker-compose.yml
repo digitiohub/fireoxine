@@ -32,6 +32,17 @@ services:
       # Product photography and admin uploads. Without this, every redeploy
       # destroys every image the client has uploaded.
       - uploads:/app/apps/api/public/uploads
+    networks:
+      # Its own network, plus the shared one the managed database sits on.
+      # Coolify puts a database resource on `coolify` and an application on a
+      # network of its own, so without this second entry the API cannot reach
+      # Postgres at all — and the symptom is a site that builds, deploys and
+      # runs perfectly while showing an empty catalogue.
+      #
+      # Only the API needs it. The storefront and the back office reach the
+      # database through the API and have no business on that network.
+      - default
+      - coolify
     restart: unless-stopped
 
   web:
@@ -88,6 +99,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+networks:
+  # Coolify's shared network, created by Coolify itself. `external` means
+  # "expected to exist already" — compose will not try to create it.
+  coolify:
+    external: true
 
 volumes:
   uploads:
