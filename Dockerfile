@@ -20,36 +20,30 @@
 # prerendered. That is intentional; it is what lets the three images build
 # independently and in any order.
 
-# ----------------------------------------------------------------- deps
-FROM node:22-slim AS deps
-# Debian, not Alpine. Prisma ships glibc-linked query engines, and on musl they
-# are reached for during `next build`'s page-data collection — the libc6-compat
-# shim mostly works, right up until it does not, and the failure surfaces as a
-# build error with nothing useful attached. openssl is what Prisma links against.
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
- && rm -rf /var/lib/apt/lists/*
-WORKDIR /repo
-COPY package.json package-lock.json ./
-COPY apps/api/package.json apps/api/
-COPY apps/web/package.json apps/web/
-COPY apps/admin/package.json apps/admin/
-COPY packages/types/package.json packages/types/
-COPY packages/ui/package.json packages/ui/
-
-# --include=dev is not optional here. Coolify (and most CI) exports
-# NODE_ENV=production for the build, and `npm ci` honours that by omitting
-# devDependencies — which is where next, typescript and tailwind live. The
-# install then succeeds and the BUILD fails several minutes later with no
-# indication why. Pinning it makes the stage mean what it says.
-RUN npm ci --include=dev
-
 # ---------------------------------------------------------------- build
 FROM node:22-slim AS builder
+# Debian, not Alpine: Prisma ships glibc-linked query engines, and the musl
+# shim is a source of failures that surface with nothing attached.
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo
-COPY --from=deps /repo/node_modules ./node_modules
+
+# Source first, then install. This used to be a separate `deps` stage whose
+# node_modules was copied in, and that was silently wrong: npm does not hoist
+# everything to the root in a workspace. `jose` installs at
+# apps/api/node_modules/jose, so copying only /repo/node_modules dropped it and
+# the API build failed with "Module not found: Can't resolve 'jose'".
+#
+# Installing in place is correct by construction — no bookkeeping about which
+# workspace happens to have nested dependencies this week. It costs the
+# dependency layer's cache when only source changes, which is a fair price for
+# a build that cannot silently lose a package.
 COPY . .
+
+# --include=dev is not optional: Coolify (and most CI) exports
+# NODE_ENV=production, and `npm ci` honours that by omitting devDependencies —
+# which is where next, typescript and tailwind live.
+RUN npm ci --include=dev
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -62,7 +56,7 @@ ENV NEXT_PUBLIC_MEDIA_URL=$NEXT_PUBLIC_MEDIA_URL
 
 # NODE_ENV is deliberately NOT set here. `next build` selects production mode
 # itself, and forcing the variable either way only risks a non-standard build.
-# The npm side is handled where it matters, with --include=dev in deps.
+# The npm side is handled above, with --include=dev on the install.
 # Both are build-time only. Prisma needs a syntactically valid URL to generate
 # a client; it never connects. Each container gets real values at run time.
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
