@@ -14,11 +14,25 @@ import type { Role, SessionUserDto } from '@fireoxine/types';
  * token can never satisfy an admin route even if it were stolen.
  */
 
-const SECRET = process.env.AUTH_SECRET;
-if (!SECRET) {
-  throw new Error('AUTH_SECRET is not set. The API refuses to issue tokens without it.');
+/**
+ * Resolved on first use, never at import.
+ *
+ * Throwing at module scope took the BUILD down: `next build` imports every
+ * route module to collect page data, so an unset variable in CI failed the
+ * image rather than the request. A missing secret must still be fatal — it
+ * just has to be fatal at the point where a token is actually signed.
+ */
+let cachedKey: Uint8Array | null = null;
+
+function signingKey(): Uint8Array {
+  if (cachedKey) return cachedKey;
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error('AUTH_SECRET is not set. The API refuses to issue tokens without it.');
+  }
+  cachedKey = new TextEncoder().encode(secret);
+  return cachedKey;
 }
-const key = new TextEncoder().encode(SECRET);
 
 /** Twelve hours. Long enough for a working day, short enough to matter. */
 export const TOKEN_TTL_SECONDS = 60 * 60 * 12;
@@ -43,12 +57,12 @@ export async function issueToken(user: SessionUserDto, scope: TokenScope): Promi
     .setIssuedAt()
     .setIssuer('fireoxine-api')
     .setExpirationTime(`${TOKEN_TTL_SECONDS}s`)
-    .sign(key);
+    .sign(signingKey());
 }
 
 export async function verifyToken(token: string): Promise<TokenClaims | null> {
   try {
-    const { payload } = await jwtVerify(token, key, { issuer: 'fireoxine-api' });
+    const { payload } = await jwtVerify(token, signingKey(), { issuer: 'fireoxine-api' });
     if (!payload.sub) return null;
     return {
       sub: payload.sub,

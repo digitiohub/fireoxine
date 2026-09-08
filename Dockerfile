@@ -21,9 +21,13 @@
 # independently and in any order.
 
 # ----------------------------------------------------------------- deps
-FROM node:22-alpine AS deps
-# Prisma's engines are glibc-linked; alpine needs the compat shim and openssl.
-RUN apk add --no-cache libc6-compat openssl
+FROM node:22-slim AS deps
+# Debian, not Alpine. Prisma ships glibc-linked query engines, and on musl they
+# are reached for during `next build`'s page-data collection — the libc6-compat
+# shim mostly works, right up until it does not, and the failure surfaces as a
+# build error with nothing useful attached. openssl is what Prisma links against.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
@@ -40,8 +44,9 @@ COPY packages/ui/package.json packages/ui/
 RUN npm ci --include=dev
 
 # ---------------------------------------------------------------- build
-FROM node:22-alpine AS builder
-RUN apk add --no-cache libc6-compat openssl
+FROM node:22-slim AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo
 COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
@@ -58,9 +63,6 @@ ENV NEXT_PUBLIC_MEDIA_URL=$NEXT_PUBLIC_MEDIA_URL
 # NODE_ENV is deliberately NOT set here. `next build` selects production mode
 # itself, and forcing the variable either way only risks a non-standard build.
 # The npm side is handled where it matters, with --include=dev in deps.
-# Three Next builds in one image on a small VPS is the usual place to run out
-# of heap. The default cap is a fraction of the box; this states it plainly.
-ENV NODE_OPTIONS=--max-old-space-size=3072
 # Both are build-time only. Prisma needs a syntactically valid URL to generate
 # a client; it never connects. Each container gets real values at run time.
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
@@ -75,13 +77,14 @@ RUN echo "=== building web ===" && npm run build -w @fireoxine/web
 RUN echo "=== building admin ===" && npm run build -w @fireoxine/admin
 
 # ------------------------------------------------------------ runtime base
-FROM node:22-alpine AS runtime
-RUN apk add --no-cache libc6-compat openssl
+FROM node:22-slim AS runtime
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
-RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+RUN groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -m -s /bin/bash nextjs
 
 # -------------------------------------------------------------------- api
 FROM runtime AS api
