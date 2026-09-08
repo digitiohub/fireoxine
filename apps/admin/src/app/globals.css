@@ -1,0 +1,13 @@
+/*
+  Tailwind is imported HERE, not in @fireoxine/ui, because Tailwind v4 scans
+  for class names relative to the stylesheet that imports it. Importing it
+  from inside the package made it scan the package and emit no utilities for
+  this app at all — the symptom was a site with no stylesheet.
+
+  `@source` then adds the shared components, which live outside this app's
+  tree but use the same utilities.
+*/
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+
+@import "@fireoxine/ui/globals.css";

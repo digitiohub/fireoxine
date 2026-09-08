@@ -2,50 +2,43 @@
   "name": "fireoxine",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "next lint",
+    "dev": "concurrently -n api,web,admin -c magenta,cyan,yellow \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:admin\"",
+    "dev:api": "npm run dev -w @fireoxine/api",
+    "dev:web": "npm run dev -w @fireoxine/web",
+    "dev:admin": "npm run dev -w @fireoxine/admin",
+    "build": "prisma generate && npm run build -w @fireoxine/api && npm run build -w @fireoxine/web && npm run build -w @fireoxine/admin",
+    "build:check": "NEXT_DIST_DIR=.next-check npm run build -w @fireoxine/api && NEXT_DIST_DIR=.next-check npm run build -w @fireoxine/web && NEXT_DIST_DIR=.next-check npm run build -w @fireoxine/admin",
+    "start": "concurrently -n api,web,admin -c magenta,cyan,yellow \"npm:start:api\" \"npm:start:web\" \"npm:start:admin\"",
+    "start:api": "npm run start -w @fireoxine/api",
+    "start:web": "npm run start -w @fireoxine/web",
+    "start:admin": "npm run start -w @fireoxine/admin",
+    "typecheck": "tsc -b --pretty",
+    "lint": "npm run lint -w @fireoxine/web && npm run lint -w @fireoxine/admin",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "rm -f prisma/dev.db && prisma db push && npm run db:seed",
+    "db:reset": "rm -f prisma/dev.db && prisma db push && npm run images:fetch && npm run db:seed",
     "db:studio": "prisma studio",
+    "images:fetch": "tsx prisma/fetch-catalogue-images.ts",
     "placeholders:on": "tsx prisma/attach-placeholders.ts",
-    "placeholders:off": "tsx prisma/clear-placeholders.ts",
-    "build:check": "NEXT_DIST_DIR=.next-check next build"
+    "placeholders:off": "tsx prisma/clear-placeholders.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "next": "15.5.4",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "@prisma/client": "6.16.2",
-    "next-auth": "5.0.0-beta.29",
-    "@auth/prisma-adapter": "2.10.0",
-    "bcryptjs": "3.0.2",
-    "zod": "4.1.11",
-    "clsx": "2.1.1",
-    "tailwind-merge": "3.3.1",
-    "lucide-react": "0.544.0",
-    "next-themes": "0.4.6",
-    "sonner": "2.0.7"
+    "@prisma/client": "6.16.2"
   },
   "devDependencies": {
-    "typescript": "5.9.2",
-    "@types/node": "24.5.2",
-    "@types/react": "19.1.13",
-    "@types/react-dom": "19.1.9",
-    "@types/bcryptjs": "2.4.6",
     "prisma": "6.16.2",
-    "tailwindcss": "4.1.13",
-    "@tailwindcss/postcss": "4.1.13",
-    "postcss": "8.5.6",
     "tsx": "4.20.5",
-    "eslint": "9.36.0",
-    "eslint-config-next": "15.5.4"
+    "typescript": "5.9.2",
+    "concurrently": "9.1.2",
+    "@types/node": "24.5.2"
   },
   "allowScripts": {
     "@prisma/client@6.16.2": true,

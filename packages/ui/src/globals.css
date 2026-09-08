@@ -1,0 +1,515 @@
+/*
+  The shared design system. Imported by each app's own globals.css, which
+  supplies `@import "tailwindcss"` itself.
+
+  This file deliberately does NOT import Tailwind. Tailwind v4 derives the
+  root it scans for class names from the location of the stylesheet that
+  imports it — so importing Tailwind from inside packages/ui made it scan
+  packages/ui and emit nothing for apps/web or apps/admin. Each app imports
+  Tailwind from its own src/app/globals.css instead, and pulls this in after.
+*/
+
+/*
+  FireOxine — The Agit-Train.
+  Unbleached newsprint, soot stencil, and red rationed to the wedge.
+
+  The rationing rule is the whole world: --wedge appears only on a primary
+  action, a genuine alarm or prohibition, or the moving wedge itself. If you
+  are reaching for it for emphasis, use weight or size instead.
+*/
+
+@theme {
+  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  /* One shared motion clock. Nothing beats independently. */
+  --fx-beat: 220ms;
+  --fx-drive: 620ms;
+  --fx-ease-drive: cubic-bezier(0.16, 1, 0.3, 1);
+  --fx-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* The one diagonal of travel. A second angle would be noise. */
+  --fx-lean: -4deg;
+}
+
+:root {
+  color-scheme: light;
+
+  --ground: #ede6d6;
+  --ground-raised: #f7f3e9;
+  --ground-sunk: #e2d9c5;
+  --ink: #14120f;
+  --ink-muted: #5c574d;
+  --ink-faint: #8a8271;
+  --rule: rgb(20 18 15 / 0.18);
+  --rule-strong: rgb(20 18 15 / 0.4);
+  --wedge: #ce2a15;
+  --wedge-deep: #a61f0e;
+  --wedge-ink: #fdf6ec;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --ground: #14120f;
+  --ground-raised: #1e1b17;
+  --ground-sunk: #0c0b09;
+  --ink: #ede6d6;
+  --ink-muted: #a79e8c;
+  --ink-faint: #7a7264;
+  --rule: rgb(237 230 214 / 0.16);
+  --rule-strong: rgb(237 230 214 / 0.36);
+  --wedge: #e8462c;
+  --wedge-deep: #ff5c40;
+  --wedge-ink: #16100e;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-ground-raised: var(--ground-raised);
+  --color-ground-sunk: var(--ground-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-wedge: var(--wedge);
+  --color-wedge-deep: var(--wedge-deep);
+  --color-wedge-ink: var(--wedge-ink);
+}
+
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Every number on this site is a number you compare against another
+     number. Tabular by default; a price that shifts by a pixel when the
+     rupee value changes is a bug you can see. */
+  .fx-num,
+  table,
+  input[type="number"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* --- Browser surfaces. The parts we did not draw still carry the design. */
+
+  ::selection {
+    background-color: var(--wedge);
+    color: var(--wedge-ink);
+  }
+
+  :root {
+    caret-color: var(--wedge);
+    accent-color: var(--wedge);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--wedge);
+    outline-offset: 2px;
+    border-radius: 0;
+  }
+
+  a {
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1.5px;
+  }
+
+  * {
+    scrollbar-color: var(--ink-faint) var(--ground-sunk);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--ground-sunk);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--ink-faint);
+    border: 3px solid var(--ground-sunk);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-muted);
+  }
+
+  ::placeholder {
+    color: var(--ink-faint);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------------------- the wedge
+
+     The primary action. Red lives here and almost nowhere else. It drives in
+     from the left on load, then holds. The notch on the trailing edge is the
+     shape's whole identity, so it survives at every size. */
+
+  .fx-wedge {
+    --wedge-notch: 0.85em;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.85em calc(1.5em + var(--wedge-notch)) 0.85em 1.5em;
+    background-color: var(--wedge);
+    color: var(--wedge-ink);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--wedge-notch)) 100%, 0 100%);
+    transition: background-color var(--fx-beat) var(--fx-ease-out),
+      transform var(--fx-beat) var(--fx-ease-out);
+  }
+
+  .fx-wedge:hover:not(:disabled) {
+    background-color: var(--wedge-deep);
+    transform: translateX(3px);
+  }
+
+  .fx-wedge:active:not(:disabled) {
+    transform: translateX(1px);
+  }
+
+  .fx-wedge:disabled {
+    background-color: var(--ground-sunk);
+    color: var(--ink-faint);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* The quiet action. Ink, not red — because red is rationed. */
+  .fx-wedge-ghost {
+    --wedge-notch: 0.85em;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.85em calc(1.5em + var(--wedge-notch)) 0.85em 1.5em;
+    background-color: transparent;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--wedge-notch)) 100%, 0 100%);
+    transition: background-color var(--fx-beat) var(--fx-ease-out),
+      color var(--fx-beat) var(--fx-ease-out);
+  }
+
+  .fx-wedge-ghost:hover:not(:disabled) {
+    background-color: var(--ink);
+    color: var(--ground);
+  }
+
+  .fx-wedge-ghost:disabled {
+    color: var(--ink-faint);
+    box-shadow: inset 0 0 0 1.5px var(--rule);
+    cursor: not-allowed;
+  }
+
+  /* --------------------------------------------------------- stencil label
+
+     The section head and the small caps label. Wood-type character at any
+     size, tracked open so it reads as stamped rather than set. */
+
+  .fx-stencil {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    line-height: 1;
+  }
+
+  .fx-display {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 0.86;
+    text-wrap: balance;
+  }
+
+  /* ------------------------------------------------------------ the rule
+
+     Structure comes from hairline rules, not stacked boxes. A rule with a
+     stencil label riding on it is this site's section divider. */
+
+  .fx-rule {
+    border-top: 1px solid var(--rule);
+  }
+
+  .fx-rule-strong {
+    border-top: 2px solid var(--ink);
+  }
+
+  /* --------------------------------------------------------------- inputs */
+
+  .fx-field {
+    width: 100%;
+    background-color: var(--ground-raised);
+    color: var(--ink);
+    border: 1px solid var(--rule-strong);
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    transition: border-color var(--fx-beat) var(--fx-ease-out);
+  }
+
+  .fx-field:hover {
+    border-color: var(--ink-muted);
+  }
+
+  .fx-field:focus {
+    border-color: var(--wedge);
+    outline: 2px solid var(--wedge);
+    outline-offset: 1px;
+  }
+
+  .fx-field[aria-invalid="true"] {
+    border-color: var(--wedge);
+  }
+
+  .fx-label {
+    display: block;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.4rem;
+  }
+}
+
+@layer utilities {
+  .fx-lean {
+    transform: rotate(var(--fx-lean));
+  }
+
+  /* Newsprint tooth. Subtle enough to read as stock, not as texture. */
+  .fx-newsprint {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in srgb, var(--ink) 7%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 4px 4px;
+  }
+}
+
+/* --------------------------------------------------------------- motion */
+
+@keyframes fx-drive-in {
+  from {
+    transform: translateX(-14%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fx-rise {
+  from {
+    transform: translateY(0.5em);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fx-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.fx-drive {
+  animation: fx-drive-in var(--fx-drive) var(--fx-ease-drive) both;
+}
+
+.fx-rise {
+  animation: fx-rise var(--fx-drive) var(--fx-ease-drive) both;
+}
+
+.fx-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: fx-marquee var(--fx-marquee-duration, 34s) linear infinite;
+  /* The band runs with the direction of travel, so the train reads as driven
+     by the reader rather than idling. */
+  animation-direction: var(--fx-marquee-direction, normal);
+}
+
+/* Anything being read holds perfectly still. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .fx-marquee-track {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* ----------------------------------------------------- scroll choreography
+
+   The car arrives. A section's leading rule draws edge to edge from its
+   origin and the head follows just behind it — the world's "continuous runs
+   go edge to edge unbroken" rule expressed as movement, rather than a fade
+   dressed up as a thesis.
+
+   Every pre-animation state is scoped to html.fx-motion, a class added by
+   script only after it has confirmed motion is wanted. Without JavaScript,
+   with a thrown script, or under prefers-reduced-motion, none of these rules
+   match and the page renders complete and still. Content is never hidden
+   waiting for JavaScript that may not arrive. */
+
+html.fx-motion [data-fx] {
+  transition:
+    opacity var(--fx-drive) var(--fx-ease-drive),
+    transform var(--fx-drive) var(--fx-ease-drive);
+  transition-delay: calc(var(--fx-i, 0) * 55ms);
+}
+
+/* The rule draws from its leading edge. */
+html.fx-motion [data-fx="rule"] {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* The head follows the rule in. */
+html.fx-motion [data-fx="arrive"] {
+  opacity: 0;
+  transform: translateY(0.9rem);
+}
+
+/* A car pulls in along the axis of travel. */
+html.fx-motion [data-fx="car"] {
+  opacity: 0;
+  transform: translateX(-1.5rem);
+}
+
+html.fx-motion [data-fx].fx-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger lives here, not in JavaScript.
+
+   Writing inline styles onto server-rendered nodes races React's hydration:
+   an effect can mutate a node before React has reconciled it, and React then
+   reports an attribute mismatch it cannot patch. Expressing the sequence with
+   nth-child means the markup the server sent is the markup React hydrates,
+   and the choreography adds exactly one class per element and nothing else.
+
+   The cap is built into the selector: a twelve-cell grid must not take three
+   quarters of a second to finish arriving, so everything past the sixth child
+   shares the last step. */
+
+.fx-stagger > *:nth-child(1) { --fx-i: 0; }
+.fx-stagger > *:nth-child(2) { --fx-i: 1; }
+.fx-stagger > *:nth-child(3) { --fx-i: 2; }
+.fx-stagger > *:nth-child(4) { --fx-i: 3; }
+.fx-stagger > *:nth-child(5) { --fx-i: 4; }
+.fx-stagger > *:nth-child(n + 6) { --fx-i: 5; }
+
+/* --------------------------------------------------------- depth as state
+
+   The fire-class row. Pointer or keyboard focus brings one cell forward and
+   lets its siblings recede — rank is depth, and the frontmost outranks the
+   rest. Recede is opacity and scale only: the letters stay exactly where they
+   are, so a row being read never shifts under the reader. */
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .fx-depth-row:has(> .fx-depth:hover) > .fx-depth:not(:hover),
+  .fx-depth-row:has(> .fx-depth:focus-within) > .fx-depth:not(:focus-within) {
+    opacity: 0.52;
+    transform: scale(0.985);
+  }
+}
+
+.fx-depth {
+  transition:
+    opacity var(--fx-beat) var(--fx-ease-out),
+    transform var(--fx-beat) var(--fx-ease-out);
+}
+
+.fx-depth:hover,
+.fx-depth:focus-within {
+  z-index: 1;
+}
+
+/* -------------------------------------------------- the horizontal travel
+
+   The train. A tall outer track holds the scroll distance; the inner car
+   sticks to the viewport and one transform moves the whole rake sideways.
+   One transform on one element, not twelve — the cards themselves do no work.
+
+   The pinned behaviour is opt-in per breakpoint from the component, so the
+   phone keeps its native scroll-snap rail. */
+
+.fx-travel-viewport {
+  scrollbar-width: none;
+}
+.fx-travel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.fx-travel-rake {
+  will-change: transform;
+}
+
+/* The reader's own progress along the rake, drawn as a rule. */
+.fx-travel-progress {
+  transform-origin: left center;
+  transform: scaleX(var(--fx-progress, 0));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.fx-motion [data-fx] {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .fx-travel-rake {
+    will-change: auto;
+  }
+}

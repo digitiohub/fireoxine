@@ -1,15 +1,56 @@
+# Three apps, three containers. Only `api` reaches the database.
+#
+# `admin` is deliberately published on 127.0.0.1 only: the back office is not
+# meant to be exposed the way the storefront is. Put it behind a VPN or an IP
+# allowlist before binding it to a public interface.
+
+x-secret: &auth-secret
+  # Generate a real one: openssl rand -base64 32
+  AUTH_SECRET: "change-me-before-anything-public"
+
 services:
-  web:
-    build: .
+  api:
+    build:
+      context: .
+      target: api
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3002:3002"
     environment:
-      # Generate a real one: openssl rand -base64 32
-      AUTH_SECRET: "change-me-before-anything-public"
-      AUTH_TRUST_HOST: "true"
+      <<: *auth-secret
+      DATABASE_URL: "file:./dev.db"
     volumes:
       # Keeps admin uploads across container restarts.
-      - uploads:/app/public/uploads
+      - uploads:/app/apps/api/public/uploads
+      # Keeps the demo database. Drop this for a real Postgres deployment.
+      - database:/app/prisma
+
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    environment:
+      API_URL: "http://api:3002"
+      # Media URLs are resolved by the visitor's browser, so this must be the
+      # address the API is reachable at from OUTSIDE the compose network.
+      NEXT_PUBLIC_MEDIA_URL: "http://localhost:3002"
+
+  admin:
+    build:
+      context: .
+      target: admin
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      - api
+    environment:
+      API_URL: "http://api:3002"
+      NEXT_PUBLIC_MEDIA_URL: "http://localhost:3002"
+      WEB_URL: "http://localhost:3000"
 
 volumes:
   uploads:
+  database:
