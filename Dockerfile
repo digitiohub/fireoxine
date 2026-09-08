@@ -31,7 +31,13 @@ COPY apps/web/package.json apps/web/
 COPY apps/admin/package.json apps/admin/
 COPY packages/types/package.json packages/types/
 COPY packages/ui/package.json packages/ui/
-RUN npm ci
+
+# --include=dev is not optional here. Coolify (and most CI) exports
+# NODE_ENV=production for the build, and `npm ci` honours that by omitting
+# devDependencies — which is where next, typescript and tailwind live. The
+# install then succeeds and the BUILD fails several minutes later with no
+# indication why. Pinning it makes the stage mean what it says.
+RUN npm ci --include=dev
 
 # ---------------------------------------------------------------- build
 FROM node:22-alpine AS builder
@@ -41,6 +47,12 @@ COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# NODE_ENV is deliberately NOT set here. `next build` selects production mode
+# itself, and forcing the variable either way only risks a non-standard build.
+# The npm side is handled where it matters, with --include=dev in deps.
+# Three Next builds in one image on a small VPS is the usual place to run out
+# of heap. The default cap is a fraction of the box; this states it plainly.
+ENV NODE_OPTIONS=--max-old-space-size=3072
 # Both are build-time only. Prisma needs a syntactically valid URL to generate
 # a client; it never connects. Each container gets real values at run time.
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
@@ -48,9 +60,11 @@ ENV AUTH_SECRET="build-time-placeholder-not-used-at-runtime"
 
 RUN npx prisma generate
 
-RUN npm run build -w @fireoxine/api \
- && npm run build -w @fireoxine/web \
- && npm run build -w @fireoxine/admin
+# One RUN per app, so a failure names the app that failed. Combined, the only
+# thing the log shows is that "the build" broke — which is what happened.
+RUN echo "=== building api ===" && npm run build -w @fireoxine/api
+RUN echo "=== building web ===" && npm run build -w @fireoxine/web
+RUN echo "=== building admin ===" && npm run build -w @fireoxine/admin
 
 # ------------------------------------------------------------ runtime base
 FROM node:22-alpine AS runtime
