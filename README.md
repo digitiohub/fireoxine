@@ -33,8 +33,13 @@ place rather than two.
 ## Running it
 
 ```bash
+# A local Postgres. The app runs the same engine everywhere — see below.
+docker run -d --name fireoxine-pg -p 5432:5432 \
+  -e POSTGRES_USER=fireoxine -e POSTGRES_PASSWORD=fireoxine \
+  -e POSTGRES_DB=fireoxine postgres:16-alpine
+
 npm install
-npm run db:reset      # creates prisma/dev.db, restores images, seeds catalogue
+npm run db:reset      # migrates, restores images, seeds the catalogue
 npm run dev           # runs all three apps together
 ```
 
@@ -46,8 +51,17 @@ API has to be up for the other two to show anything, because they have no
 other source of data.
 
 Each app reads its own `.env`; see `.env.example` for what each one needs.
-Nothing external is required: SQLite file database, credential auth, local
-file uploads. No API keys, no third-party accounts.
+Beyond Postgres nothing external is required: credential auth, local file
+uploads, no API keys and no third-party accounts.
+
+**Postgres in development as well as production.** This used to be SQLite
+locally. Running one engine on your laptop and another in front of customers
+is how a query that passes review fails in production — the two disagree on
+case sensitivity, on transaction isolation and on concurrent writes, and this
+codebase depends on all three. The catalogue search is the concrete example:
+`contains` compiles to a case-sensitive `LIKE` on Postgres and a
+case-insensitive one on SQLite, so searching "extinguisher" would have quietly
+matched nothing in production.
 
 > **Never run `npm run build` while `npm run dev` is live.** It overwrites
 > `.next` underneath the dev servers and corrupts their module graphs. Use
@@ -203,6 +217,159 @@ attaching proxy for the file picker — a browser cannot attach an httpOnly
 cookie to a cross-origin upload, so that request is forwarded server-side. It
 streams the form through untouched; the API still does all the validation.
 
+## Deploying to Coolify
+
+Four resources: one Postgres and three applications, all built from this one
+repository by picking a different Dockerfile stage.
+
+### 1 · Postgres
+
+**New Resource → Database → PostgreSQL.** Once it is running, open it and copy
+the **internal** connection URL — the one using the service name, not
+`localhost`. It looks like:
+
+```
+postgresql://postgres:<password>@<service-name>:5432/postgres
+```
+
+Keep all four resources in the **same Coolify project and environment**, so
+they share a Docker network and can address each other by service name. The
+database never needs a public port.
+
+### 2 · The API
+
+**New Resource → Application → your Git repository.**
+
+| Setting | Value |
+| --- | --- |
+| Build Pack | `Dockerfile` |
+| Dockerfile Location | `/Dockerfile` |
+| Docker Build Stage Target | `api` |
+| Ports Exposes | `3002` |
+
+Environment variables:
+
+```
+DATABASE_URL=postgresql://postgres:<password>@<service-name>:5432/postgres
+AUTH_SECRET=<openssl rand -base64 32>
+```
+
+**Storages → Add.** Mount a persistent volume at:
+
+```
+/app/apps/api/public/uploads
+```
+
+Without it, every redeploy destroys every photograph the client has uploaded.
+This is the single most important setting on the page.
+
+Give the API a domain only if you want media served from a nice hostname — you
+do, because visitors' browsers load images directly from it. Something like
+`api.fireoxine.in`.
+
+### 3 · The storefront and the back office
+
+Two more applications from the same repository, identical except for the
+target, port and variables.
+
+| | web | admin |
+| --- | --- | --- |
+| Docker Build Stage Target | `web` | `admin` |
+| Ports Exposes | `3000` | `3001` |
+| Domain | `fireoxine.in` | `admin.fireoxine.in` |
+
+```
+# web
+API_URL=http://<api-service-name>:3002
+NEXT_PUBLIC_MEDIA_URL=https://api.fireoxine.in
+
+# admin
+API_URL=http://<api-service-name>:3002
+NEXT_PUBLIC_MEDIA_URL=https://api.fireoxine.in
+WEB_URL=https://fireoxine.in
+```
+
+Those two URLs are **not interchangeable and rarely the same host**:
+
+- `API_URL` is server-to-server, inside Coolify's network. Internal name, plain
+  HTTP, no public exposure needed.
+- `NEXT_PUBLIC_MEDIA_URL` is baked into the HTML and resolved by the visitor's
+  browser. It must be publicly reachable over HTTPS, or every product image
+  breaks while the pages themselves look fine.
+
+`NEXT_PUBLIC_*` variables are inlined at **build** time, not read at run time,
+so changing it means redeploying web and admin — restarting them is not enough.
+
+**Restrict the admin app.** It is a separate deployment precisely so it can be
+locked down: put it behind Coolify's Basic Auth, an IP allowlist, or a VPN. The
+guard in the app is a lock on the door, not the door.
+
+### 4 · Seed the database
+
+The build never touches a database — that is why the images can build in any
+order — so migrating and seeding are one-off commands run **once**, after the
+API is up. Open the API application in Coolify and use its **Terminal** (or
+`Execute Command`), then:
+
+```bash
+npx prisma migrate deploy                    # create the 14 tables
+npx tsx prisma/fetch-catalogue-images.ts     # 270 photographs onto the volume
+npx tsx prisma/seed.ts                       # 7 categories, 132 products, settings
+```
+
+Or the same three as one command:
+
+```bash
+npm run db:provision
+```
+
+Expect roughly this back:
+
+```
+Images: 270 downloaded, 0 already present, 0 failed (270 total).
+Seeded: { categories: 7, hazards: 10, fireClasses: 5, products: 132,
+          variants: 132, images: 270, faqs: 14, settings: 51, users: 2 }
+```
+
+**Order matters.** Migrate before seeding, and fetch images before seeding —
+the seed writes rows pointing at `/uploads/…`, and a row whose file is missing
+renders the "photograph pending" plate instead of a photograph.
+
+Then change both seeded passwords immediately: the seed creates
+`admin@fireoxine.in` / `admin1234`.
+
+### Re-seeding, and what it destroys
+
+`prisma/seed.ts` **deletes every row it manages before inserting** — products,
+categories, settings, orders and users included. It is a first-run command, not
+an update. Once the client has edited copy or taken an order, do not run it
+again; change things in the back office instead.
+
+To deploy a schema change later, `npx prisma migrate deploy` on its own is the
+whole step. It applies only new migrations and touches no data.
+
+### If the image download is blocked
+
+`fetch-catalogue-images.ts` pulls the 270 photographs from the source listing's
+CDN. If your server cannot reach it, copy them up from your machine instead —
+the volume is just a directory:
+
+```bash
+docker cp apps/api/public/uploads/. <api-container>:/app/apps/api/public/uploads/
+```
+
+Then run the migrate and seed steps as above, skipping the fetch.
+
+### Health check
+
+```
+GET https://api.fireoxine.in/api/health
+→ {"ok":true,"data":{"service":"fireoxine-api","products":132,...}}
+```
+
+A `products` count of 0 means the seed has not run. A 500 means `DATABASE_URL`
+is wrong or the migration has not been applied.
+
 ## How the data model earns its keep
 
 - **Money is integer paise everywhere.** Never a float. Prices are entered in
@@ -247,6 +414,8 @@ streams the form through untouched; the API still does all the validation.
       current would be a false certification claim. Replace the three
       `about.iso*` settings with the renewed certificate, or clear
       `about.isoStandard` to drop the panel entirely.
+- [ ] Back up Postgres and the uploads volume. Coolify can schedule database
+      backups; the volume is not covered by them and holds every photograph.
 - [ ] Wire a payment gateway. Checkout currently places an order and confirms
       by phone; no payment is taken.
 - [ ] Send transactional email. **Nothing sends email today** — no order
@@ -255,13 +424,10 @@ streams the form through untouched; the API still does all the validation.
       that is what actually happens; change that copy when email exists.
 - [ ] Rate-limit sign-in and the contact, partner and newsletter forms. There
       is no throttling, so all four are open to spam and credential stuffing.
-- [ ] Create a migration history. The schema was applied with `prisma db push`
-      and `prisma/migrations/` is empty; run `prisma migrate dev` once against
-      the final schema before the first deploy so production has a migration
-      path.
+- [x] Migration history exists in `prisma/migrations/`, applied in production
+      with `prisma migrate deploy`.
 - [ ] Add a cleanup job for orphaned guest carts (`CartItem` rows with a
       `sessionId` whose cookie has expired).
 - [ ] Move uploads to object storage if deploying to a platform with an
-      ephemeral filesystem (Vercel included) — `public/uploads` will not
+      ephemeral filesystem (Vercel included) — `apps/api/public/uploads` will not
       survive a redeploy there.
-- [ ] Switch `datasource db` to `postgresql` for production.

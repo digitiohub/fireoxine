@@ -1,28 +1,53 @@
-# Three apps, three containers. Only `api` reaches the database.
+# Three apps and a database. Only `api` reaches Postgres.
 #
 # `admin` is deliberately published on 127.0.0.1 only: the back office is not
 # meant to be exposed the way the storefront is. Put it behind a VPN or an IP
 # allowlist before binding it to a public interface.
+#
+# First run, once the containers are up:
+#
+#   docker compose exec api npx prisma migrate deploy
+#   docker compose exec api npx tsx prisma/fetch-catalogue-images.ts
+#   docker compose exec api npx tsx prisma/seed.ts
+#
+# That order matters: the schema has to exist before the seed, and the images
+# have to be on the volume before the seed writes rows that point at them.
 
-x-secret: &auth-secret
+x-app-env: &app-env
   # Generate a real one: openssl rand -base64 32
   AUTH_SECRET: "change-me-before-anything-public"
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fireoxine
+      POSTGRES_PASSWORD: fireoxine
+      POSTGRES_DB: fireoxine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fireoxine"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: .
       target: api
     ports:
       - "127.0.0.1:3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      <<: *auth-secret
-      DATABASE_URL: "file:./dev.db"
+      <<: *app-env
+      DATABASE_URL: "postgresql://fireoxine:fireoxine@postgres:5432/fireoxine?schema=public"
     volumes:
-      # Keeps admin uploads across container restarts.
+      # Product photography and admin uploads. Without this, every redeploy
+      # loses every image the client has uploaded.
       - uploads:/app/apps/api/public/uploads
-      # Keeps the demo database. Drop this for a real Postgres deployment.
-      - database:/app/prisma
 
   web:
     build:
@@ -53,4 +78,4 @@ services:
 
 volumes:
   uploads:
-  database:
+  pgdata:

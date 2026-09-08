@@ -58,11 +58,16 @@ export function buildProductWhere(
   }
   if (params.q) {
     const q = String(params.q);
+    // `mode: 'insensitive'` is required on Postgres, where `contains` compiles
+    // to a case-SENSITIVE LIKE. SQLite's LIKE happened to be case-insensitive
+    // for ASCII, so this difference is invisible until you deploy — searching
+    // "extinguisher" would silently miss every product named "Extinguisher".
+    const insensitive = 'insensitive' as const;
     and.push({
       OR: [
-        { name: { contains: q } },
-        { shortDescription: { contains: q } },
-        { sku: { contains: q } },
+        { name: { contains: q, mode: insensitive } },
+        { shortDescription: { contains: q, mode: insensitive } },
+        { sku: { contains: q, mode: insensitive } },
       ],
     });
   }

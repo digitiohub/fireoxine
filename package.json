@@ -20,12 +20,15 @@
     "typecheck": "tsc -b --pretty",
     "lint": "npm run lint -w @fireoxine/web && npm run lint -w @fireoxine/admin",
     "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "rm -f prisma/dev.db && prisma db push && npm run images:fetch && npm run db:seed",
+    "db:reset": "prisma migrate reset --force && npm run images:fetch && npm run db:seed",
     "db:studio": "prisma studio",
     "images:fetch": "tsx prisma/fetch-catalogue-images.ts",
     "placeholders:on": "tsx prisma/attach-placeholders.ts",
-    "placeholders:off": "tsx prisma/clear-placeholders.ts"
+    "placeholders:off": "tsx prisma/clear-placeholders.ts",
+    "db:provision": "prisma migrate deploy && npm run images:fetch && npm run db:seed"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

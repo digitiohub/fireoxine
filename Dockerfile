@@ -9,10 +9,10 @@
 #
 # Pick one with `--target api|web|admin`, or let docker-compose build all three.
 #
-# The build seeds its own SQLite database rather than expecting one to be
-# mounted, so a client can be handed one command and see the whole system. For
-# production, point DATABASE_URL at Postgres and switch the datasource provider
-# in prisma/schema.prisma — the bundled SQLite file is demo furniture.
+# The build does NOT touch a database. `prisma generate` only reads the schema,
+# and no route executes at build time, so an image can be built without a
+# Postgres to point at. Migrating and seeding are deploy-time steps, run once
+# against the real database — see the Coolify section of the README.
 #
 # Note on prerendering: web and admin call the API inside generateStaticParams.
 # During an image build the API is not running, so those calls fail softly and
@@ -41,14 +41,12 @@ COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_URL="file:./dev.db"
-# Build-time only. Each container is given a real secret at run time.
+# Both are build-time only. Prisma needs a syntactically valid URL to generate
+# a client; it never connects. Each container gets real values at run time.
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 ENV AUTH_SECRET="build-time-placeholder-not-used-at-runtime"
 
-RUN npx prisma generate \
- && npx prisma db push --skip-generate \
- && npx tsx prisma/fetch-catalogue-images.ts || true
-RUN npx tsx prisma/seed.ts
+RUN npx prisma generate
 
 RUN npm run build -w @fireoxine/api \
  && npm run build -w @fireoxine/web \
@@ -70,7 +68,13 @@ FROM runtime AS api
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/api/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/api/.next/static ./apps/api/.next/static
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/api/public ./apps/api/public
+# The schema, migrations, seed and importer travel with the API image, because
+# migrating and seeding are run as one-off commands inside this container.
 COPY --from=builder --chown=nextjs:nodejs /repo/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/tsx ./node_modules/tsx
+COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/.bin ./node_modules/.bin
 USER nextjs
 EXPOSE 3002
 ENV PORT=3002

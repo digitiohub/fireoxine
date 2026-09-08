@@ -14,7 +14,17 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  // Postgres in every environment, including local development. Running one
+  // engine in development and another in production is how a query that works
+  // on your laptop fails in front of a customer: SQLite and Postgres disagree
+  // on case sensitivity, on transaction isolation and on concurrent writes,
+  // and this codebase depends on all three.
+  //
+  // For a local database:
+  //   docker run -d --name fireoxine-pg -p 5432:5432 \
+  //     -e POSTGRES_USER=fireoxine -e POSTGRES_PASSWORD=fireoxine \
+  //     -e POSTGRES_DB=fireoxine postgres:16-alpine
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
