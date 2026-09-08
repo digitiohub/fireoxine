@@ -64,6 +64,19 @@ ENV AUTH_SECRET="build-time-placeholder-not-used-at-runtime"
 
 RUN npx prisma generate
 
+# The migrate/seed commands run inside the API container, so the Prisma CLI and
+# tsx have to travel with it. They are installed into their own prefix rather
+# than cherry-picked out of /repo/node_modules: the CLI has transitive
+# dependencies of its own (`effect`, among others), and copying the packages
+# by name drops them silently — the failure is a MODULE_NOT_FOUND at the moment
+# you try to migrate a live database, which is the worst possible time to find
+# out. Letting npm resolve the tree is the only way to get this right.
+# bcryptjs is in here because the seed hashes the two starter passwords, and
+# Next bundles it into the server chunks rather than leaving it in
+# node_modules — so it is present for the running API and absent for a script.
+RUN mkdir -p /tools && cd /tools && npm init -y >/dev/null \
+ && npm install --omit=dev prisma@6.16.2 tsx@4.20.5 bcryptjs@3.0.2
+
 # One RUN per app, so a failure names the app that failed. Combined, the only
 # thing the log shows is that "the build" broke — which is what happened.
 RUN echo "=== building api ===" && npm run build -w @fireoxine/api
@@ -90,10 +103,20 @@ COPY --from=builder --chown=nextjs:nodejs /repo/apps/api/public ./apps/api/publi
 # The schema, migrations, seed and importer travel with the API image, because
 # migrating and seeding are run as one-off commands inside this container.
 COPY --from=builder --chown=nextjs:nodejs /repo/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/prisma ./node_modules/prisma
+
+# The CLI tools merge INTO node_modules rather than sitting beside it. Node
+# resolves a bare import from the importing file upwards, so a script at
+# /app/prisma/seed.ts only ever looks in /app/node_modules — a sibling
+# directory would be invisible to it however the PATH is set.
+COPY --from=builder --chown=nextjs:nodejs /tools/node_modules ./node_modules
+
+# Last, so it wins any overlap: the generated client and its query engine.
+# Next's standalone tracing has a long history of missing the engine binary,
+# and a server that cannot reach the database is not worth the megabytes saved
+# by trusting it.
+COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/tsx ./node_modules/tsx
-COPY --from=builder --chown=nextjs:nodejs /repo/node_modules/.bin ./node_modules/.bin
+
 USER nextjs
 EXPOSE 3002
 ENV PORT=3002
