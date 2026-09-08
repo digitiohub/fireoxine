@@ -28,7 +28,7 @@
     "images:fetch": "tsx prisma/fetch-catalogue-images.ts",
     "placeholders:on": "tsx prisma/attach-placeholders.ts",
     "placeholders:off": "tsx prisma/clear-placeholders.ts",
-    "db:provision": "prisma migrate deploy && npm run images:fetch && npm run db:seed"
+    "db:provision": "tsx prisma/provision.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
